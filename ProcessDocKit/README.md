@@ -1,25 +1,22 @@
 # ProcessDocKit — مستندسازی **قبل** طراحی فرایند
 
-این کیت متعلق به **واحد مستندسازی** است (قابل جداسازی از پروژه).  
-خروجی آن **شناسنامه فرایند** است — مبنای شروع طراحی در Bizagi (فاز A۰ در `AGENTS.md`).
+خروجی: **شناسنامه فرایند** (فاز A0) — Gate قبل از `Docs/` و Bizagi Studio.
 
-> طراحی، verify و مستند پیاده‌سازی → در [`Docs/`](../Docs/README.md) (بعد از تحویل شناسنامه).
+> **راهنمای کامل فاز A0:** [CHARTER-GUIDE.md](./CHARTER-GUIDE.md)  
+> طراحی Bizagi → [`Docs/`](../Docs/README.md)
 
 ---
 
-## چرخه در یک پروژه با چند فرایند
+## چرخه
 
 ```text
-                    ProcessDocKit                    Docs
-                 (قبل طراحی)              (حین و بعد طراحی + پیاده‌سازی)
-                        │                              │
-  جلسه + فرم ──► input/ ──► output/ ──► deliverables/ ──► SPEC · BPMN · STATUS · VERIFY · …
-                        │         شناسنامه.docx              (همان ProcessKey)
-                        └──────────────── ProcessKey ────────┘
+  جلسه + فرم ──► input/ ──► output/ ──► deliverables/ ──► [Gate] ──► Docs/SPEC
+                      │         │              │
+                      │         │         Word سازمان
+                      └─────────┴── process-charter.md (Agent)
 ```
 
-**ProcessKey** = نام انگلیسی PascalCase = `wfClsName` در Bizagi (مثلاً `WarehouseRequest`).  
-عنوان فارسی فقط داخل متن اسناد — **نه** نام پوشه.
+**ProcessKey** = PascalCase = `wfClsName` (مثلاً `WarehouseRequest`)
 
 ---
 
@@ -28,18 +25,18 @@
 ```text
 ProcessDocKit/
 ├── README.md
-├── templates/                    ← مشترک (یک‌بار)
-│   ├── user/                     ← تو پر می‌کنی
-│   └── agent/                    ← Agent پر می‌کند
-├── processes/                    ← یک پوشه به ازای هر فرایند
-│   ├── _INDEX.md                 ← فهرست و وضعیت همه فرایندها
-│   ├── README.md
-│   └── {ProcessKey}/
-│       ├── input/                ← تو: صورتجلسه + forms/
-│       ├── output/               ← Agent: تحلیل + شناسنامه.md
-│       └── deliverables/         ← شناسنامه Word نهایی
-├── word/                         ← قالب‌های خالی Word (اختیاری)
-└── tools/md2docx.py
+├── CHARTER-GUIDE.md              ← Gate فاز A0 (اجباری Agent)
+├── templates/
+│   ├── user/01-meeting-minutes.md
+│   └── agent/02-form-analysis.md · 03-process-charter.md
+│       · 04-charter-gate-checklist.md · 05-charter-status.md
+├── processes/{ProcessKey}/
+│   ├── STATUS.md                 ← وضعیت Gate A0
+│   ├── input/ · output/ · deliverables/
+├── word/                         ← قالب Word سازمان
+└── tools/
+    ├── md2docx.py                ← پیش‌نمایش MD (نه تحویل رسمی)
+    └── validate-charter.py       ← Gate checker
 ```
 
 ---
@@ -47,48 +44,55 @@ ProcessDocKit/
 ## شروع فرایند جدید
 
 ```powershell
-$Key = "WarehouseRequest"   # = wfClsName
+$Key = "WarehouseRequest"
 
-mkdir ProcessDocKit\processes\$Key\input\forms
-mkdir ProcessDocKit\processes\$Key\output
-mkdir ProcessDocKit\processes\$Key\deliverables
+$base = "ProcessDocKit\processes\$Key"
+mkdir "$base\input\forms", "$base\output", "$base\deliverables"
 
-copy ProcessDocKit\templates\user\01-meeting-minutes.md `
-     ProcessDocKit\processes\$Key\input\meeting-minutes.md
+copy ProcessDocKit\templates\user\01-meeting-minutes.md "$base\input\meeting-minutes.md"
+copy ProcessDocKit\templates\agent\04-charter-gate-checklist.md "$base\output\charter-gate-checklist.md"
+copy ProcessDocKit\templates\agent\05-charter-status.md "$base\STATUS.md"
+# جایگزین {ProcessKey} در STATUS.md
 ```
 
-بعد از جلسه: فرم‌ها → `input/forms/` · ردیف جدید در `processes/_INDEX.md`.
+---
+
+## Agent — ترتیب کار
+
+1. `input/` بخوان
+2. `output/form-analysis-*.md` + `process-charter.md`
+3. **`deliverables/{ProcessKey}-شناسنامه.docx` = قالب Word سازمان** (نه فقط md2docx)
+4. `charter-gate-checklist.md` + `STATUS.md` → Gate
+5. `python ProcessDocKit/tools/validate-charter.py {ProcessKey}`
+6. `_INDEX.md`
+
+جزئیات: [CHARTER-GUIDE.md](./CHARTER-GUIDE.md)
 
 ---
 
-## Agent مستندسازی
+## Word: تحویل رسمی
 
-1. `processes/{ProcessKey}/input/` را بخوان.
-2. `output/form-analysis-*.md` + `output/process-charter.md` تولید کن.
-3. Word → `deliverables/{ProcessKey}-شناسنامه.docx`
-4. `_INDEX.md` را به‌روز کن (وضعیت: شناسنامه تحویل شد).
-
----
-
-## تبدیل Word
+| | |
+|---|---|
+| **تحویل رسمی** | `deliverables/{ProcessKey}-شناسنامه.docx` از **قالب سازمان** |
+| **md2docx** | فقط پیش‌نمایش Markdown — جایگزین قالب **نیست** |
 
 ```powershell
-python ProcessDocKit/tools/md2docx.py --templates
+# پیش‌نمایش (اختیاری):
+python ProcessDocKit/tools/md2docx.py processes/WarehouseRequest/output/process-charter.md /tmp/preview.docx
 
-python ProcessDocKit/tools/md2docx.py `
-  ProcessDocKit/processes/WarehouseRequest/output/process-charter.md `
-  ProcessDocKit/processes/WarehouseRequest/deliverables/WarehouseRequest-شناسنامه.docx
+# Gate:
+python ProcessDocKit/tools/validate-charter.py WarehouseRequest
 ```
 
 ---
 
-## اتصال به Docs (طراحی Bizagi)
+## اتصال به Docs
 
 | | ProcessDocKit | Docs |
 |---|---------------|------|
-| **زمان** | قبل طراحی | حین و بعد طراحی |
-| **مسیر** | `processes/{ProcessKey}/` | `Docs/processes/{ProcessKey}/` |
-| **ProcessKey** | یکسان | یکسان |
-| **خروجی کلیدی** | `deliverables/*-شناسنامه.docx` | `SPEC.md` · `.bpmn` · `STATUS.md` · … |
+| زمان | قبل طراحی (A0) | حین طراحی (A–C) |
+| Gate | `STATUS.md` = آماده برای Docs | `SPEC.md` شروع |
+| خروجی کلیدی | `deliverables/*-شناسنامه.docx` | `SPEC.md` · `.bpmn` · `STATUS.md` |
 
-واحد طراحی شناسنامه را از `ProcessDocKit/processes/{ProcessKey}/deliverables/` می‌خواند و artefactهای طراحی را در `Docs/processes/{ProcessKey}/` می‌سازد.
+**تا Gate سبز نشود، SPEC نساز.**

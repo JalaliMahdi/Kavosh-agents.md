@@ -5,7 +5,7 @@
 
 > راهنمای تیم (قالب پیام، شروع سریع): [TEAM-GUIDE.md](./TEAM-GUIDE.md)
 > چارت سازمانی (مرجع نقش‌ها برای Performers): [ORG-CHART.md](./ORG-CHART.md)
-> کیت مستندسازی فرایند (واحد جدا — **قبل** طراحی): [ProcessDocKit/](./ProcessDocKit/README.md)
+> کیت مستندسازی فرایند (واحد جدا — **قبل** طراحی): [ProcessDocKit/](./ProcessDocKit/README.md) · **Gate A0:** [CHARTER-GUIDE.md](./ProcessDocKit/CHARTER-GUIDE.md)
 > مستندات طراحی و پیاده‌سازی (**حین/بعد** طراحی): [Docs/](./Docs/README.md)
 
 **مرجع رسمی:** [Bizagi Process Wizard — ۷ مرحله](https://help.bizagi.com/platform/en/process_wizard.htm)
@@ -114,7 +114,7 @@ Studio (.bpex)  →  Publish  →  Runtime (IIS)  →  SQL Server (runtime truth
 
 | فاز | Wizard | Agent |
 |-----|--------|-------|
-| A۰ — دریافت شناسنامه | ورودی | `ProcessDocKit/processes/{ProcessKey}/deliverables/{ProcessKey}-شناسنامه.docx` (از [ProcessDocKit](./ProcessDocKit/README.md))؛ مبنای SPEC و BPMN |
+| A۰ — دریافت شناسنامه | ورودی + Gate | `ProcessDocKit/processes/{ProcessKey}/` تا Gate **آماده برای Docs** ([CHARTER-GUIDE](./ProcessDocKit/CHARTER-GUIDE.md))؛ تحویل Word: `deliverables/{ProcessKey}-شناسنامه.docx` |
 | A — Spec | ۱–۶ | `Docs/processes/{ProcessKey}/SPEC.md` (از روی شناسنامه) |
 | B — Build | ۱–۶ | پاسخ به سؤالات |
 | C — Publish | ۷ | SQL/trace verify → به‌روز `STATUS.md` |
@@ -123,7 +123,7 @@ Studio (.bpex)  →  Publish  →  Runtime (IIS)  →  SQL Server (runtime truth
 
 **ترتیب مراحل Wizard:** ۲ قبل از ۳ · ۱ قبل از ۵.
 
-**خواندن شناسنامه (فاز A۰):** مسیر: `ProcessDocKit/processes/{ProcessKey}/deliverables/{ProcessKey}-شناسنامه.docx`. docx باینری → استخراج (zip → `word/document.xml`). `{ProcessKey}` باید با پوشه‌ی `Docs/processes/{ProcessKey}/` یکسان باشد.
+**خواندن شناسنامه (فاز A۰):** Gate: `ProcessDocKit/processes/{ProcessKey}/STATUS.md` · Word (قالب سازمان): `deliverables/{ProcessKey}-شناسنامه.docx` · Agent: `output/process-charter.md`. `{ProcessKey}` = `Docs/processes/{ProcessKey}/`. جزئیات: [CHARTER-GUIDE](./ProcessDocKit/CHARTER-GUIDE.md).
 
 ---
 

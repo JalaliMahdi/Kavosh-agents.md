@@ -6,10 +6,28 @@
 |-----|--------|-----|
 | **این فایل** | شما | چه کار کنید — گام‌به‌گام Wizard |
 | **[AGENTS.md](./AGENTS.md)** | Agent | قرارداد فنی — نخوانید؛ فقط در چت ارجاع دهید |
+| **[ProcessDocKit/CHARTER-GUIDE.md](./ProcessDocKit/CHARTER-GUIDE.md)** | شما + Agent | **فاز A0:** شناسنامه قبل از Wizard |
 | **`SPEC.md`** | شما + Agent | طراحی ثابت هر فرایند |
 | **`STATUS.md`** | شما + Agent | پیشرفت + نتیجه verify |
 
 **مرجع Bizagi:** [Process Wizard — ۷ مرحله](https://help.bizagi.com/platform/en/process_wizard.htm)
+
+---
+
+## قبل از Wizard — فاز A0 (شناسنامه)
+
+**قبل از مرحله ۱ Wizard** باید شناسنامه فرایند آماده باشد:
+
+1. صورتجلسه + فرم(ها) → `ProcessDocKit/processes/{ProcessKey}/input/`
+2. Agent → تحلیل + `deliverables/{ProcessKey}-شناسنامه.docx` (قالب Word سازمان)
+3. Gate ✅ در `ProcessDocKit/processes/{ProcessKey}/STATUS.md`
+4. سپس Agent → `Docs/processes/{ProcessKey}/SPEC.md`
+
+```powershell
+python ProcessDocKit/tools/validate-charter.py WarehouseRequest
+```
+
+راهنما: [CHARTER-GUIDE.md](./ProcessDocKit/CHARTER-GUIDE.md)
 
 ---
 
