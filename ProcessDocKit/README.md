@@ -1,89 +1,94 @@
-# سیستم استاندارد مستندسازی فرایند (ProcessDocKit)
+# ProcessDocKit — مستندسازی **قبل** طراحی فرایند
 
-مجموعه‌ی سه قالب به‌هم‌پیوسته برای تولید خودکار «شناسنامه فرایند» توسط Agent، از روی صورتجلسه تحلیل و فرم‌های کاغذی موجود.
+این کیت متعلق به **واحد مستندسازی** است (قابل جداسازی از پروژه).  
+خروجی آن **شناسنامه فرایند** است — مبنای شروع طراحی در Bizagi (فاز A۰ در `AGENTS.md`).
 
-> **این کیت مستقل است.** متعلق به *واحد مستندسازی فرایند* است، نه واحد طراحی فرایند (Bizagi). به‌گونه‌ای طراحی شده که بتوان کل پوشه‌ی `ProcessDocKit/` را به‌صورت مستقل از این پروژه جدا کرد.
->
-> **خروجی این کیت = فایل Word شناسنامه فرایند.** آن فایل Word به روت پروژه‌ی Bizagi تحویل داده می‌شود و واحد طراحی (Agent در آن پروژه) از روی آن، طراحی فرایند (BPMN/SPEC) را ادامه می‌دهد. جزئیات در `AGENTS.md` پروژه‌ی Bizagi، بخش فاز A۰.
+> طراحی، verify و مستند پیاده‌سازی → در [`Docs/`](../Docs/README.md) (بعد از تحویل شناسنامه).
 
-## قالب‌ها
+---
 
-| # | فایل | نقش | چه کسی تکمیل می‌کند |
-|---|------|-----|----------------------|
-| ۱ | [01-meeting-minutes.md](./01-meeting-minutes.md) | صورتجلسه تحلیل فرایند — **ورودی اصلی** | تحلیلگر (دستی، در جلسه) |
-| ۲ | [02-form-analysis.md](./02-form-analysis.md) | تحلیل فرم کاغذی — **ورودی تکمیلی** | Agent (استخراج از فرم واقعی) |
-| ۳ | [03-process-charter.md](./03-process-charter.md) | شناسنامه فرایند — **خروجی نهایی** | Agent (تولید خودکار) |
-
-## نمودار اتصال
+## چرخه در یک پروژه با چند فرایند
 
 ```text
-صورتجلسه (Template 1)  ─┐
-                        ├──►  Agent  ──►  شناسنامه فرایند (Template 3)
-فرم‌های کاغذی (Template 2) ┘
+                    ProcessDocKit                    Docs
+                 (قبل طراحی)              (حین و بعد طراحی + پیاده‌سازی)
+                        │                              │
+  جلسه + فرم ──► input/ ──► output/ ──► deliverables/ ──► SPEC · BPMN · STATUS · VERIFY · …
+                        │         شناسنامه.docx              (همان ProcessKey)
+                        └──────────────── ProcessKey ────────┘
 ```
 
-- صورتجلسه = منبع اصلی مراحل، نقش‌ها، تصمیمات، قوانین، ریسک‌ها و بهبودها.
-- فرم‌های کاغذی = منبع تکمیلی فیلدها، امضاها، گردش کار و قوانین قابل استخراج.
-- شناسنامه فقط از روی این دو ساخته می‌شود؛ هیچ منبع دیگری مبنا نیست.
+**ProcessKey** = نام انگلیسی PascalCase = `wfClsName` در Bizagi (مثلاً `WarehouseRequest`).  
+عنوان فارسی فقط داخل متن اسناد — **نه** نام پوشه.
 
-## روش تولید توسط Agent
+---
 
-1. صورتجلسه (Template 1) را به‌عنوان منبع اصلی بخوان.
-2. برای هر فرم کاغذی، یک تحلیل با Template 2 تولید کن.
-3. مراحل فرایند را از §۵ صورتجلسه استخراج کن.
-4. نقش‌ها را از حاضرین (§۲)، مراحل (§۵) و فرم‌ها استخراج کن؛ در صورت امکان با [ORG-CHART.md](../../ORG-CHART.md) تطبیق بده.
-5. ورودی/خروجی را از مراحل و اقلام فرم‌ها استخراج کن.
-6. قوانین کسب‌وکار را از §۸ صورتجلسه و §۶ تحلیل فرم استخراج کن.
-7. نقاط تصمیم‌گیری را از §۷ صورتجلسه و گزینه‌های تأیید/رد فرم‌ها استخراج کن.
-8. فرم‌ها، سیستم‌ها، ریسک‌ها و بهبودها را از بخش‌های متناظر منتقل کن.
-9. بخش BPMN (§۲۰) را با نام‌گذاری استاندارد AGENTS.md پر کن.
-10. شناسنامه را با Template 3 تولید کن.
-
-## قواعد الزامی Agent
-
-- **داده‌ی ناقص:** هر فیلد نامشخص را دقیقاً با عبارت `نیازمند تکمیل` علامت بزن. حدس قطعی ممنوع.
-- **مغایرت منابع:** هر اختلاف بین صورتجلسه و فرم‌ها را در بخش «ابهامات و مغایرت‌های شناسایی‌شده» شناسنامه ثبت کن. این بخش هرگز حذف نشود.
-- **ادبیات:** رسمی، دقیق، سازمانی.
-- **خروجی Word:** ساختار جداول حفظ شود تا تبدیل به Word استاندارد سازمان (فرمت شناسنامه کاوش پژوه) ممکن باشد.
-- **همگامی با BPMN:** نام Taskها در §۲۰ مطابق قاعده‌ی نام‌گذاری AGENTS.md (tskName انگلیسی PascalCase + Display name فارسی).
-
-## تبدیل به Word
-
-برای تبدیل قالب‌ها (یا شناسنامه‌ی پرشده) به Word حرفه‌ی راست‌به‌چپ:
-
-```powershell
-# پیش‌نیاز یک‌بار: نصب کتابخانه
-python -m pip install python-docx
-
-# تبدیل همه‌ی قالب‌های این کیت → ProcessDocKit/word/
-python ProcessDocKit/tools/md2docx.py --all
-
-# تبدیل یک فایل خاص (مثلاً شناسنامه‌ی پرشده)
-python ProcessDocKit/tools/md2docx.py ProcessDocKit/work/{ProcessName}/process-charter.md
-```
-
-خروجی‌ها جدول‌ها، عنوان‌ها و راست‌به‌چپ فارسی را حفظ می‌کنند. کامنت‌های راهنمای داخل قالب (`<!-- ... -->`) در Word ظاهر نمی‌شوند.
-
-## محل کار هر فرایند (داخل همین کیت)
-
-برای هر فرایند یک پوشه‌ی کاری بساز:
-
-```text
-ProcessDocKit/work/{ProcessName}/
-├── meeting-minutes.md     ← نمونه پرشده از Template 1
-├── forms/                 ← تحلیل فرم‌ها از Template 2
-└── process-charter.md     ← شناسنامه نهایی از Template 3  →  تبدیل به Word
-```
-
-سپس فایل **Word شناسنامه** را به روت پروژه‌ی Bizagi تحویل بده تا واحد طراحی ادامه دهد.
-
-## ساختار کیت
+## ساختار
 
 ```text
 ProcessDocKit/
 ├── README.md
-├── templates/   ← سه قالب مرجع
-├── tools/       ← md2docx.py (مبدل Markdown→Word)
-├── work/        ← پوشه‌ی کاری هر فرایند (شما می‌سازید)
-└── word/        ← خروجی‌های Word تولیدشده
+├── templates/                    ← مشترک (یک‌بار)
+│   ├── user/                     ← تو پر می‌کنی
+│   └── agent/                    ← Agent پر می‌کند
+├── processes/                    ← یک پوشه به ازای هر فرایند
+│   ├── _INDEX.md                 ← فهرست و وضعیت همه فرایندها
+│   ├── README.md
+│   └── {ProcessKey}/
+│       ├── input/                ← تو: صورتجلسه + forms/
+│       ├── output/               ← Agent: تحلیل + شناسنامه.md
+│       └── deliverables/         ← شناسنامه Word نهایی
+├── word/                         ← قالب‌های خالی Word (اختیاری)
+└── tools/md2docx.py
 ```
+
+---
+
+## شروع فرایند جدید
+
+```powershell
+$Key = "WarehouseRequest"   # = wfClsName
+
+mkdir ProcessDocKit\processes\$Key\input\forms
+mkdir ProcessDocKit\processes\$Key\output
+mkdir ProcessDocKit\processes\$Key\deliverables
+
+copy ProcessDocKit\templates\user\01-meeting-minutes.md `
+     ProcessDocKit\processes\$Key\input\meeting-minutes.md
+```
+
+بعد از جلسه: فرم‌ها → `input/forms/` · ردیف جدید در `processes/_INDEX.md`.
+
+---
+
+## Agent مستندسازی
+
+1. `processes/{ProcessKey}/input/` را بخوان.
+2. `output/form-analysis-*.md` + `output/process-charter.md` تولید کن.
+3. Word → `deliverables/{ProcessKey}-شناسنامه.docx`
+4. `_INDEX.md` را به‌روز کن (وضعیت: شناسنامه تحویل شد).
+
+---
+
+## تبدیل Word
+
+```powershell
+python ProcessDocKit/tools/md2docx.py --templates
+
+python ProcessDocKit/tools/md2docx.py `
+  ProcessDocKit/processes/WarehouseRequest/output/process-charter.md `
+  ProcessDocKit/processes/WarehouseRequest/deliverables/WarehouseRequest-شناسنامه.docx
+```
+
+---
+
+## اتصال به Docs (طراحی Bizagi)
+
+| | ProcessDocKit | Docs |
+|---|---------------|------|
+| **زمان** | قبل طراحی | حین و بعد طراحی |
+| **مسیر** | `processes/{ProcessKey}/` | `Docs/processes/{ProcessKey}/` |
+| **ProcessKey** | یکسان | یکسان |
+| **خروجی کلیدی** | `deliverables/*-شناسنامه.docx` | `SPEC.md` · `.bpmn` · `STATUS.md` · … |
+
+واحد طراحی شناسنامه را از `ProcessDocKit/processes/{ProcessKey}/deliverables/` می‌خواند و artefactهای طراحی را در `Docs/processes/{ProcessKey}/` می‌سازد.

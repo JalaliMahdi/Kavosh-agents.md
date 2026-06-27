@@ -5,7 +5,8 @@
 
 > راهنمای تیم (قالب پیام، شروع سریع): [TEAM-GUIDE.md](./TEAM-GUIDE.md)
 > چارت سازمانی (مرجع نقش‌ها برای Performers): [ORG-CHART.md](./ORG-CHART.md)
-> کیت مستندسازی فرایند (واحد جدا — تولید شناسنامه): [ProcessDocKit/](./ProcessDocKit/README.md)
+> کیت مستندسازی فرایند (واحد جدا — **قبل** طراحی): [ProcessDocKit/](./ProcessDocKit/README.md)
+> مستندات طراحی و پیاده‌سازی (**حین/بعد** طراحی): [Docs/](./Docs/README.md)
 
 **مرجع رسمی:** [Bizagi Process Wizard — ۷ مرحله](https://help.bizagi.com/platform/en/process_wizard.htm)
 
@@ -23,9 +24,9 @@
 
 ### می‌تواند
 
-- spec کامل فرایند (۷ مرحله) در `Docs/processes/{ProcessName}/SPEC.md` — **فقط طراحی؛ بدون وضعیت verify**
-- گزارش verify در `Docs/processes/{ProcessName}/STATUS.md` — **با هر بررسی به‌روز**
-- فایل **`{ProcessName}.bpmn`** (BPMN 2.0 XML) — پیش‌نمایش در [bpmn.io](https://demo.bpmn.io/)؛ کاربر در Modeler طراحی می‌کند
+- spec کامل فرایند (۷ مرحله) در `Docs/processes/{ProcessKey}/SPEC.md` — **فقط طراحی؛ بدون وضعیت verify**
+- گزارش verify در `Docs/processes/{ProcessKey}/STATUS.md` — **با هر بررسی به‌روز**
+- فایل **`{ProcessKey}.bpmn`** (BPMN 2.0 XML) — پیش‌نمایش در [bpmn.io](https://demo.bpmn.io/)؛ کاربر در Modeler طراحی می‌کند
 - `VERIFY.sql` و اجرای read-only روی DB
 - expression، validation، شرط gateway
 - عیب‌یابی trace و `WORKITEM`
@@ -68,14 +69,26 @@ sqlcmd -S "{ServerFromDSN}" -d "{CatalogFromDSN}" -E -Q "SELECT 1"
 ├── AGENTS.md
 ├── TEAM-GUIDE.md
 ├── ORG-CHART.md
-├── {ProcessName}-شناسنامه.docx     ← ورودی فاز A۰: شناسنامه نهایی (از واحد مستندسازی)
-├── ProcessDocKit/                  ← کیت تولید شناسنامه (واحد جدا، قابل حذف)
-├── Docs/processes/{ProcessName}/   ← SPEC.md · STATUS.md · VERIFY.sql · {ProcessName}.bpmn
+│
+├── ProcessDocKit/                          ← قبل طراحی (واحد مستندسازی، قابل حذف)
+│   ├── templates/user|agent/
+│   └── processes/{ProcessKey}/             ← ProcessKey = wfClsName (PascalCase)
+│       ├── input/                          ← صورتجلسه + forms/
+│       ├── output/                         ← تحلیل Agent
+│       └── deliverables/                   ← {ProcessKey}-شناسنامه.docx  ← ورودی فاز A۰
+│
+├── Docs/                                   ← حین و بعد طراحی (واحد طراحی Bizagi)
+│   └── processes/{ProcessKey}/             ← همان ProcessKey
+│       ├── SPEC.md · STATUS.md · VERIFY.sql · {ProcessKey}.bpmn
+│       └── (آینده) سند پیاده‌سازی
+│
 ├── WebApplication/
 ├── Scheduler/
 ├── SitesApplication/
 └── Trace/
 ```
+
+**ProcessKey:** نام انگلیسی PascalCase یکسان در ProcessDocKit، Docs و `WFCLASS.wfClsName`. عنوان فارسی فقط داخل متن اسناد.
 
 ---
 
@@ -101,8 +114,8 @@ Studio (.bpex)  →  Publish  →  Runtime (IIS)  →  SQL Server (runtime truth
 
 | فاز | Wizard | Agent |
 |-----|--------|-------|
-| A۰ — دریافت شناسنامه | ورودی | فایل **Word شناسنامه فرایند** در روت پروژه قرار می‌گیرد (توسط واحد مستندسازی + [ProcessDocKit](./ProcessDocKit/README.md))؛ واحد طراحی آن را می‌خواند و مبنای فازهای بعد قرار می‌دهد |
-| A — Spec | ۱–۶ | deliverable در `SPEC.md` (از روی شناسنامه) |
+| A۰ — دریافت شناسنامه | ورودی | `ProcessDocKit/processes/{ProcessKey}/deliverables/{ProcessKey}-شناسنامه.docx` (از [ProcessDocKit](./ProcessDocKit/README.md))؛ مبنای SPEC و BPMN |
+| A — Spec | ۱–۶ | `Docs/processes/{ProcessKey}/SPEC.md` (از روی شناسنامه) |
 | B — Build | ۱–۶ | پاسخ به سؤالات |
 | C — Publish | ۷ | SQL/trace verify → به‌روز `STATUS.md` |
 | D — Test | ۷ | test case + `WORKITEM` |
@@ -110,7 +123,7 @@ Studio (.bpex)  →  Publish  →  Runtime (IIS)  →  SQL Server (runtime truth
 
 **ترتیب مراحل Wizard:** ۲ قبل از ۳ · ۱ قبل از ۵.
 
-**خواندن شناسنامه (فاز A۰):** چون docx باینری است، متن/جدول‌هایش را با استخراج بخوان (zip → `word/document.xml`). مراحل، نقش‌ها، تصمیمات و قوانین آن مبنای SPEC (§۸) و BPMN (مرحله ۱) هستند. کیت `ProcessDocKit/` متعلق به واحد دیگری و قابل جداسازی است؛ خروجی‌اش (فایل Word) ورودی توست.
+**خواندن شناسنامه (فاز A۰):** مسیر: `ProcessDocKit/processes/{ProcessKey}/deliverables/{ProcessKey}-شناسنامه.docx`. docx باینری → استخراج (zip → `word/document.xml`). `{ProcessKey}` باید با پوشه‌ی `Docs/processes/{ProcessKey}/` یکسان باشد.
 
 ---
 
@@ -123,12 +136,12 @@ Studio (.bpex)  →  Publish  →  Runtime (IIS)  →  SQL Server (runtime truth
 
 | Agent | Studio | Verify |
 |-------|--------|--------|
-| `{ProcessName}.bpmn` + جدول Task | پیش‌نمایش bpmn.io → طراحی دستی در Modeler | `WORKFLOW`, `TASK`, `TRANSITION` |
+| `{ProcessKey}.bpmn` + جدول Task | پیش‌نمایش bpmn.io → طراحی دستی در Modeler | `WORKFLOW`, `TASK`, `TRANSITION` |
 | Mermaid در SPEC (مرجع متنی) | — | — |
 | قوانین gateway (روایی + expression در BPMN) | بازبینی/تنظیم XOR gateway | `TRANSITIONCONDITION` |
 | display name فرایند | WFClass properties | `WFCLASS` |
 
-**Deliverable اجباری مرحله ۱:** `Docs/processes/{ProcessName}/{ProcessName}.bpmn`
+**Deliverable اجباری مرحله ۱:** `Docs/processes/{ProcessKey}/{ProcessKey}.bpmn`
 
 **قوانین BPMN:**
 
@@ -140,7 +153,7 @@ Studio (.bpex)  →  Publish  →  Runtime (IIS)  →  SQL Server (runtime truth
 
 **روند مرحله ۱ (تأییدشده تیم):**
 
-1. Agent → `{ProcessName}.bpmn`
+1. Agent → `{ProcessKey}.bpmn`
 2. کاربر → باز کردن در [demo.bpmn.io](https://demo.bpmn.io/) (`Ctrl+O`)
 3. کاربر → طراحی همان جریان در Bizagi Modeler (دستی)
 4. کاربر → Save → `.bpm` · ادامه Wizard
@@ -247,12 +260,12 @@ WHERE wi.idCase = @idCase ORDER BY wi.idWorkItem;
 
 ```markdown
 # Process: {ProcessDisplayName}
-- WFClass: {ProcessName}
+- WFClass: {ProcessKey}
 - Context entity: {EntityName}
 - Wizard steps: [1][2][3][4][5][6][7]
 
 ## Step 1 — Model Process
-(فایل: {ProcessName}.bpmn)
+(فایل: {ProcessKey}.bpmn)
 ## Step 2 — Model Data
 ## Step 3 — Define Forms
 ## Step 4 — Business Rules
@@ -261,18 +274,21 @@ WHERE wi.idCase = @idCase ORDER BY wi.idWorkItem;
 ## Step 7 — Execute
 ```
 
-`VERIFY.sql` + `STATUS.md` در همان پوشه `Docs/processes/{ProcessName}/`.
+`VERIFY.sql` + `STATUS.md` در `Docs/processes/{ProcessKey}/`.
 
-**قانون فایل‌ها:**
+**قانون فایل‌ها (`Docs/processes/{ProcessKey}/`):**
 
 | فایل | محتوا | Agent ویرایش می‌کند وقتی… |
 |------|--------|---------------------------|
 | `SPEC.md` | طراحی ثابت (۷ مرحله) | **اشتباه در spec** — اصلاح طراحی |
 | `STATUS.md` | پیشرفت Wizard + نتیجه DB | **هر verify** بعد از Publish |
 | `VERIFY.sql` | کوئری‌های read-only | اولین spec یا تغییر ساختار فرایند |
-| `{ProcessName}.bpmn` | دیاگرام مرجع | اولین spec یا تغییر جریان |
+| `{ProcessKey}.bpmn` | دیاگرام مرجع | اولین spec یا تغییر جریان |
+| *(آینده)* سند پیاده‌سازی | مستند پیاده‌سازی پس از طراحی | وقتی قالب تحویل داده شد |
 
 **هرگز** وضعیت verify، پیشرفت Wizard یا نتیجه DB را در `SPEC.md` ننویس.
+
+**تفکیک با ProcessDocKit:** شناسنامه و صورتجلسه در `ProcessDocKit/processes/{ProcessKey}/` می‌مانند — در Docs کپی/جابجا نکن مگر کاربر بخواهد.
 
 ---
 

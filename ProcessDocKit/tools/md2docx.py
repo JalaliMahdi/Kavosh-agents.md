@@ -8,7 +8,7 @@ md2docx — تبدیل قالب‌های Markdown مستندسازی فراین�
 
 استفاده:
     python md2docx.py <input.md> [output.docx]
-    python md2docx.py --all            # تبدیل همه‌ی قالب‌های ProcessDocKit/templates → ProcessDocKit/word
+    python md2docx.py --templates     # قالب‌های user/ و agent/ → word/user/ و word/agent/
 """
 import sys
 import os
@@ -240,25 +240,33 @@ def convert(md_path, docx_path):
     return docx_path
 
 
+def convert_templates(kit_dir):
+    """تبدیل قالب‌های user/ و agent/ به Word."""
+    for sub in ("user", "agent"):
+        src_dir = os.path.join(kit_dir, "templates", sub)
+        out_dir = os.path.join(kit_dir, "word", sub)
+        if not os.path.isdir(src_dir):
+            continue
+        os.makedirs(out_dir, exist_ok=True)
+        for fn in sorted(os.listdir(src_dir)):
+            if fn.endswith(".md"):
+                src = os.path.join(src_dir, fn)
+                dst = os.path.join(out_dir, fn[:-3] + ".docx")
+                convert(src, dst)
+                print("OK:", dst)
+
+
 def main():
     args = sys.argv[1:]
     here = os.path.dirname(os.path.abspath(__file__))
     kit_dir = os.path.normpath(os.path.join(here, ".."))
-    templates_dir = os.path.join(kit_dir, "templates")
 
     if not args:
         print(__doc__)
         return
 
-    if args[0] == "--all":
-        out_dir = os.path.join(kit_dir, "word")
-        os.makedirs(out_dir, exist_ok=True)
-        for fn in sorted(os.listdir(templates_dir)):
-            if fn.endswith(".md"):
-                src = os.path.join(templates_dir, fn)
-                dst = os.path.join(out_dir, fn[:-3] + ".docx")
-                convert(src, dst)
-                print("OK:", dst)
+    if args[0] in ("--templates", "--all"):
+        convert_templates(kit_dir)
         return
 
     src = args[0]
