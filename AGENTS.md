@@ -4,6 +4,8 @@
 نام پروژه، host و دیتابیس را hardcode نکن — در زمان اجرا از config کشف کن.
 
 > راهنمای تیم (قالب پیام، شروع سریع): [TEAM-GUIDE.md](./TEAM-GUIDE.md)
+> چارت سازمانی (مرجع نقش‌ها برای Performers): [ORG-CHART.md](./ORG-CHART.md)
+> کیت مستندسازی فرایند (واحد جدا — تولید شناسنامه): [ProcessDocKit/](./ProcessDocKit/README.md)
 
 **مرجع رسمی:** [Bizagi Process Wizard — ۷ مرحله](https://help.bizagi.com/platform/en/process_wizard.htm)
 
@@ -21,8 +23,8 @@
 
 ### می‌تواند
 
-- spec کامل فرایند (۷ مرحله) در `docs/processes/{ProcessName}/SPEC.md` — **فقط طراحی؛ بدون وضعیت verify**
-- گزارش verify در `docs/processes/{ProcessName}/STATUS.md` — **با هر بررسی به‌روز**
+- spec کامل فرایند (۷ مرحله) در `Docs/processes/{ProcessName}/SPEC.md` — **فقط طراحی؛ بدون وضعیت verify**
+- گزارش verify در `Docs/processes/{ProcessName}/STATUS.md` — **با هر بررسی به‌روز**
 - فایل **`{ProcessName}.bpmn`** (BPMN 2.0 XML) — پیش‌نمایش در [bpmn.io](https://demo.bpmn.io/)؛ کاربر در Modeler طراحی می‌کند
 - `VERIFY.sql` و اجرای read-only روی DB
 - expression، validation، شرط gateway
@@ -59,6 +61,22 @@ sqlcmd -S "{ServerFromDSN}" -d "{CatalogFromDSN}" -E -Q "SELECT 1"
 
 **URL:** `{BaseUrl}/{Project}/` · OData: `.../Rest/odata/` · Live Processes: `.../Api/LiveProcesses`
 
+**چیدمان پوشه‌ها (runtime root):**
+
+```
+{RuntimeRoot}/
+├── AGENTS.md
+├── TEAM-GUIDE.md
+├── ORG-CHART.md
+├── {ProcessName}-شناسنامه.docx     ← ورودی فاز A۰: شناسنامه نهایی (از واحد مستندسازی)
+├── ProcessDocKit/                  ← کیت تولید شناسنامه (واحد جدا، قابل حذف)
+├── Docs/processes/{ProcessName}/   ← SPEC.md · STATUS.md · VERIFY.sql · {ProcessName}.bpmn
+├── WebApplication/
+├── Scheduler/
+├── SitesApplication/
+└── Trace/
+```
+
 ---
 
 ## ۴. معماری
@@ -77,9 +95,29 @@ Studio (.bpex)  →  Publish  →  Runtime (IIS)  →  SQL Server (runtime truth
 
 ---
 
-## ۵. Process Wizard — هفت مرحله
+## ۵. فازهای workflow (چرخه‌ی عمر)
 
-**وظیفه Agent:** deliverable هر مرحله → کاربر در Studio → Publish → verify در DB.
+نقشه‌ی کلان کار. **فاز A۰ نقطه‌ی شروع است؛** جزئیات مراحل ۱–۷ Wizard در §۶.
+
+| فاز | Wizard | Agent |
+|-----|--------|-------|
+| A۰ — دریافت شناسنامه | ورودی | فایل **Word شناسنامه فرایند** در روت پروژه قرار می‌گیرد (توسط واحد مستندسازی + [ProcessDocKit](./ProcessDocKit/README.md))؛ واحد طراحی آن را می‌خواند و مبنای فازهای بعد قرار می‌دهد |
+| A — Spec | ۱–۶ | deliverable در `SPEC.md` (از روی شناسنامه) |
+| B — Build | ۱–۶ | پاسخ به سؤالات |
+| C — Publish | ۷ | SQL/trace verify → به‌روز `STATUS.md` |
+| D — Test | ۷ | test case + `WORKITEM` |
+| E — In-place | ۱–۳+۷ | §۱۲ |
+
+**ترتیب مراحل Wizard:** ۲ قبل از ۳ · ۱ قبل از ۵.
+
+**خواندن شناسنامه (فاز A۰):** چون docx باینری است، متن/جدول‌هایش را با استخراج بخوان (zip → `word/document.xml`). مراحل، نقش‌ها، تصمیمات و قوانین آن مبنای SPEC (§۸) و BPMN (مرحله ۱) هستند. کیت `ProcessDocKit/` متعلق به واحد دیگری و قابل جداسازی است؛ خروجی‌اش (فایل Word) ورودی توست.
+
+---
+
+## ۶. Process Wizard — هفت مرحله
+
+جزئیات مراحل فاز A/B (§۵). **وظیفه Agent:** deliverable هر مرحله → کاربر در Studio → Publish → verify در DB.
+وابستگی‌های کلیدی این بخش: قالب SPEC (§۸) و قواعد نام‌گذاری (§۹).
 
 ### مرحله ۱ — Model Process
 
@@ -90,7 +128,7 @@ Studio (.bpex)  →  Publish  →  Runtime (IIS)  →  SQL Server (runtime truth
 | قوانین gateway (روایی + expression در BPMN) | بازبینی/تنظیم XOR gateway | `TRANSITIONCONDITION` |
 | display name فرایند | WFClass properties | `WFCLASS` |
 
-**Deliverable اجباری مرحله ۱:** `docs/processes/{ProcessName}/{ProcessName}.bpmn`
+**Deliverable اجباری مرحله ۱:** `Docs/processes/{ProcessName}/{ProcessName}.bpmn`
 
 **قوانین BPMN:**
 
@@ -109,11 +147,11 @@ Studio (.bpex)  →  Publish  →  Runtime (IIS)  →  SQL Server (runtime truth
 
 Agent `.bpm` تولید نمی‌کند. `.bpmn` مرجع بصری است — نه فایل import اجباری.
 
-**`idTaskType` رایج:** 1 Start · 2 Manual · 3 Auto · 6 End · 12 Event · 17 TokenCollector · 37–43 Integration
+**`idTaskType` (این runtime):** مقادیر واقعی را از §۱۵ بگیر — Start=`1` · Manual=`2` · XOR diverging=`16` · merge=`9` · **End=`17`**. لیست عمومی Bizagi (که End را `6` می‌گوید) برای verify این نسخه **معتبر نیست**.
 
 از `Activity_1`, `Event_1` در spec/BPMN پرهیز کن.
 
-**نام‌گذاری Task در Studio (اجباری — قبل از رفتن به مرحله ۲):**
+**نام‌گذاری Task در Studio (اجباری — قبل از رفتن به مرحله ۲؛ قواعد کامل در §۹):**
 
 هر shape در Modeler **دو نام** دارد؛ هر دو را از SPEC پر کن:
 
@@ -174,7 +212,7 @@ XPath کامل: `{ContextEntity}.field` — نه `field` تنها. `guidRule` ر
 |-------|--------|--------|
 | ماتریس نقش/task | performer per activity | inbox صحیح |
 
-نقش را حدس نزن — org publish state یا سؤال از کاربر.
+نقش را حدس نزن — اول [ORG-CHART.md](./ORG-CHART.md)، سپس org publish state یا سؤال از کاربر.
 
 ### مرحله ۶ — Integrate
 
@@ -194,20 +232,6 @@ WHERE wi.idCase = @idCase ORDER BY wi.idWorkItem;
 ```
 
 `wfDocument`/`wfXPDL` ممکن است NULL باشد؛ ساختار در `TASK`/`TRANSITION` کافی است.
-
----
-
-## ۶. فازهای workflow
-
-| فاز | Wizard | Agent |
-|-----|--------|-------|
-| A — Spec | ۱–۶ | deliverable در `SPEC.md` |
-| B — Build | ۱–۶ | پاسخ به سؤالات |
-| C — Publish | ۷ | SQL/trace verify → به‌روز `STATUS.md` |
-| D — Test | ۷ | test case + `WORKITEM` |
-| E — In-place | ۱–۳+۷ | §۱۲ |
-
-**ترتیب:** ۲ قبل از ۳ · ۱ قبل از ۵.
 
 ---
 
@@ -237,7 +261,7 @@ WHERE wi.idCase = @idCase ORDER BY wi.idWorkItem;
 ## Step 7 — Execute
 ```
 
-`VERIFY.sql` + `STATUS.md` در همان پوشه `docs/processes/{ProcessName}/`.
+`VERIFY.sql` + `STATUS.md` در همان پوشه `Docs/processes/{ProcessName}/`.
 
 **قانون فایل‌ها:**
 
@@ -287,18 +311,6 @@ WHERE wi.idCase = @idCase ORDER BY wi.idWorkItem;
 | runtime | `WFCASE`, `WORKITEM` |
 
 Transition types: 1 Normal · 2 Exception · 4 Cancel · 5 Error
-
-**چیدمان:**
-
-```
-{RuntimeRoot}/
-├── AGENTS.md
-├── TEAM-GUIDE.md
-├── docs/processes/
-├── WebApplication/
-├── Scheduler/
-└── Trace/
-```
 
 ---
 
@@ -357,7 +369,7 @@ DELETE FROM BARENDERDATA;
 ## ۱۵. Discoveries
 
 - **۱۴۰۵/۰۳/۳۰:** `position` در بیزاجی **کلمه کلیدی رزروشده** است و نمی‌توان attribute با این نام ساخت. در SPEC از نام‌های جایگزین مثل `positions`, `jobPosition` یا `personnelPosition` استفاده کن. (به‌طور کلی نام‌های عمومی پرریسک: از پیشوند دامنه استفاده کن.)
-- **۱۴۰۵/۰۳/۳۰ (Test30, build 11.2.5.1148):** مقادیر واقعی `TASK.idTaskType` در runtime این نسخه: Start=`1` · Manual=`2` · Gateway واگرا (XOR diverging)=`16` · Gateway همگرا (merge)=`9` · **End=`17`** (نه `6`). هنگام verify مرحله ۱ این مقادیر را معیار بگیر، نه لیست «idTaskType رایج» مرحله ۱.
+- **۱۴۰۵/۰۳/۳۰ (Test30, build 11.2.5.1148):** مقادیر واقعی `TASK.idTaskType` در runtime این نسخه: Start=`1` · Manual=`2` · Gateway واگرا (XOR diverging)=`16` · Gateway همگرا (merge)=`9` · **End=`17`** (نه `6`). هنگام verify مرحله ۱ این مقادیر را معیار بگیر، نه لیست عمومی Bizagi.
 - **۱۴۰۵/۰۳/۳۰:** **رویداد مرزی (Boundary interrupting event)** به‌صورت ردیف `TASK` مستقل ذخیره **نمی‌شود**؛ بیزاجی آن را به‌شکل یک `TRANSITION` با `idTransitionType=9` از task مبدأ به مقصد رویداد نگه می‌دارد. پس اگر تعداد TASK یکی کمتر از تعداد shapeهای BPMN بود (به‌ازای هر boundary event)، طبیعی است و نقص محسوب نمی‌شود.
 - **۱۴۰۴/۰۳/۱۵:** Studio 11.x — انواع رایج: Date-time (نه Date)، String (نه Text)، Boolean (yes-no). در SPEC ستون «نوع Studio» بنویس.
 - **۱۴۰۴/۰۳/۰۱:** xpath suffix = `ENTITYKEY` نه `guidAttrib` · catalog 487: `mtdState=0`, `contentFormat=0`
