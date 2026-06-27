@@ -1,0 +1,22 @@
+# Bizagi runtime — فقط artefactهای مستندسازی/طراحی Agent track می‌شوند.
+# بقیه (WebApplication، Database، Tools، Trace، …) نادیده گرفته می‌شوند.
+
+# ── همه چیز ──
+*
+
+# ── استثنا: خود gitignore ──
+!.gitignore
+
+# ── مستندات ریشه ──
+!/AGENTS.md
+!/ORG-CHART.md
+!/README.md
+!/TEAM-GUIDE.md
+
+# ── قبل طراحی: کیت مستندسازی فرایند ──
+!/ProcessDocKit/
+!/ProcessDocKit/**
+
+# ── حین/بعد طراحی: SPEC · BPMN · STATUS · … ──
+!/Docs/
+!/Docs/**
